@@ -2,24 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	_ "github.com/gorilla/mux"
 	"log"
 	"mime"
 	"net/http"
 	"time"
 	"todo/internal"
 )
-
-type Handler struct {
-}
-
-func (h *Handler) initRoutes() (w http.ResponseWriter, req *http.Request) {
-	router := mux.NewRouter()
-	router.StrictSlash(true)
-
-	router.HandleFunc("/task/")
-
-}
 
 func (s *internal.Server) createTaskHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling task create at %s\n", req.URL.Path)

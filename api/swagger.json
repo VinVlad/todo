@@ -1,14 +1,46 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Title",
-    "description": "Title",
+    "title": "Todo",
+    "description": "Сервис для todo-карточек",
     "version": "1.0.0"
   },
-  "host": "www",
+  "host": "localhost:8000",
   "schemes": [
     "https"
   ],
   "paths": {
+    "/task/": {
+      "post": {
+        "description": "Добавление новой карточки",
+        "responses": {
+          "405": {
+            "description": "Метод не найден"
+          },
+          "200": {
+            "description": "Карточка создана"
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "new card",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title":{
+                  "type": "string"
+                },
+                "descriprion": {
+                  "type": "string"
+                }
+
+              }
+            }
+          }
+        ]
+      }
+    }
   }
 }

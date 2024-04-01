@@ -2,46 +2,48 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 )
 
 type Todo struct {
-	Id          int    `json:"id"`
+	//Id          int    `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
-type TodoStore struct {
+type Storage struct {
 	sync.Mutex
 
 	tasks  map[int]Todo
 	nextID int
 }
 
-func New() *TodoStore {
-	ts := &TodoStore{
+func NewStorage() *Storage {
+	ts := &Storage{
 		tasks:  make(map[int]Todo),
 		nextID: 0}
 	return ts
 }
 
 // CreateTodo создаёт новую туду-задачу в хранилище
-func (ts *TodoStore) CreateTodo(title string, description string) int {
+func (ts *Storage) CreateTodo(title string, description string) int {
 	ts.Lock()
 	defer ts.Unlock()
 
+	ts.nextID++
+
 	task := Todo{
-		Id:          ts.nextID,
 		Title:       title,
 		Description: description}
 
 	ts.tasks[ts.nextID] = task
-	ts.nextID++
-	return task.Id
+
+	return ts.nextID
 }
 
 // ChangeTodo изменяет заголовок и/или описание задачи
-func (ts *TodoStore) ChangeTodo(id int, title string, description string) (Todo, error) {
+func (ts *Storage) ChangeTodo(id int, title string, description string) (Todo, error) {
 	ts.Lock()
 	defer ts.Unlock()
 
@@ -50,11 +52,11 @@ func (ts *TodoStore) ChangeTodo(id int, title string, description string) (Todo,
 		err := errors.New("Поиск таски в базе:")
 		return v, err
 	} else {
-		task := Todo{
+		v = Todo{
+			//Id:          v.Id,
 			Title:       title,
 			Description: description}
-
-		v = task
+		ts.tasks[id] = v
 	}
 
 	return v, nil
@@ -62,13 +64,17 @@ func (ts *TodoStore) ChangeTodo(id int, title string, description string) (Todo,
 }
 
 // GetList отдаёт список всех задач
-func (ts *TodoStore) GetList() *TodoStore {
-	return ts
+func (ts *Storage) GetList() map[int]Todo {
+	return ts.tasks
 }
 
 // DeleteTask удаляет задачу по id
-func (ts *TodoStore) DeleteTask(id int) *TodoStore {
+func (ts *Storage) DeleteTask(id int) {
+	ts.Lock()
+	defer ts.Unlock()
+
 	delete(ts.tasks, id)
-	return ts
+	fmt.Println(ts)
+	return
 
 }
