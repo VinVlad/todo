@@ -3,11 +3,10 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/gofrs/uuid/v5"
 	"log"
 	"mime"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -56,7 +55,7 @@ func (s *Server) CreateTaskHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	type ResponseId struct {
-		Id int `json:"id"`
+		Id uuid.UUID `json:"id"`
 	}
 
 	// Enforce a JSON Content-Type.
@@ -83,21 +82,22 @@ func (s *Server) CreateTaskHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, ResponseId{Id: id})
 }
 
+// TODO: доработать метод редактирования карточки
 func (s *Server) ChangeTaskHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling task change at %s\n", req.URL.Path)
 
 	// Types used internally in this handler to (de-)serialize the request and
 	// response from/to JSON.
 	type RequestTask struct {
-		Id          int    `json:"id"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
+		Id          uuid.UUID `json:"id"`
+		Title       string    `json:"title"`
+		Description string    `json:"description"`
 	}
 
 	type ResponseId struct {
-		Id          int    `json:"id"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
+		Id          uuid.UUID `json:"id"`
+		Title       string    `json:"title"`
+		Description string    `json:"description"`
 	}
 
 	// Enforce a JSON Content-Type.
@@ -132,9 +132,9 @@ func (s *Server) GetTasksListHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling get all tasks  at %s\n", req.URL.Path)
 
 	type ResponseId struct {
-		Id          int    `json:"id"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
+		Id          uuid.UUID `json:"id"`
+		Title       string    `json:"title"`
+		Description string    `json:"description"`
 	}
 
 	td := s.Storage.GetList()
@@ -142,9 +142,10 @@ func (s *Server) GetTasksListHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, td)
 }
 
-func (s *Server) DeleteTaskHandler(w http.ResponseWriter, req *http.Request) {
-	log.Printf("handling delete task  at %s\n", req.URL.Path)
-
-	id, _ := strconv.Atoi(mux.Vars(req)["id"])
-	s.Storage.DeleteTask(id)
-}
+//TODO: Удаление тоже доработать
+//func (s *Server) DeleteTaskHandler(w http.ResponseWriter, req *http.Request) {
+//	log.Printf("handling delete task  at %s\n", req.URL.Path)
+//
+//	id, _ := strconv.Atoi(mux.Vars(req)["id"])
+//	s.Storage.DeleteTask(uuid.UUID)
+//}

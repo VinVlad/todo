@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx"
 	"sync"
 )
@@ -16,8 +16,8 @@ type Todo struct {
 type Storage struct {
 	sync.Mutex
 
-	tasks  map[int]Todo
-	nextID int
+	tasks map[uuid.UUID]Todo
+	//nextID int
 }
 
 var Conn = pgx.ConnConfig{
@@ -30,12 +30,11 @@ var Conn = pgx.ConnConfig{
 
 func NewStorage() *Storage {
 	ts := &Storage{
-		tasks:  make(map[int]Todo),
-		nextID: 0}
+		tasks: make(map[uuid.UUID]Todo)}
 	return ts
 }
 
-func SaveValues(id int, title string, description string) {
+func SaveValues(id uuid.UUID, title string, description string) {
 
 	conn, err := pgx.Connect(Conn)
 	if err != nil {
@@ -52,53 +51,65 @@ func SaveValues(id int, title string, description string) {
 
 }
 
+func UpdateValues(id uuid.UUID, title string, description string) {
+
+	conn, err := pgx.Connect(Conn)
+	if err != nil {
+		fmt.Println("Unable to connect to database:", err)
+		return
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec("UPDATE tasks SET title = $1, description = $2 WHERE id = $3;", title, description, id)
+	if err != nil {
+		fmt.Println("Unable to insert data into database:", err)
+		return
+	}
+
+}
+
 func ReadValues() (*pgx.Rows, error) {
 
 	//return rows, err
 	return nil, nil
 }
 
-// CreateTodo создаёт новую туду-задачу в хранилище
-func (ts *Storage) CreateTodo(title string, description string) int {
+// CreateTodo создаёт новую туду-задачу в хранилище.
+func (ts *Storage) CreateTodo(title string, description string) uuid.UUID {
 	ts.Lock()
 	defer ts.Unlock()
 
-	ts.nextID++
+	//ts.nextID++
 
 	//task := Todo{
 	//	Title:       title,
 	//	Description: description}
 	//
 	//ts.tasks[ts.nextID] = task
+	ID, _ := uuid.NewV4()
+	SaveValues(ID, title, description)
 
-	SaveValues(ts.nextID, title, description)
-
-	return ts.nextID
+	return ID
 }
 
-// ChangeTodo изменяет заголовок и/или описание задачи
-func (ts *Storage) ChangeTodo(id int, title string, description string) (Todo, error) {
+// todo: поправить обращение по ключам. Если в базе записи нет, то всё-равно что-то вернётся)))))
+// ChangeTodo изменяет заголовок и/или описание задачи.
+func (ts *Storage) ChangeTodo(uuid uuid.UUID, title string, description string) (Todo, error) {
 	ts.Lock()
 	defer ts.Unlock()
 
-	v, ok := ts.tasks[id]
-	if !ok {
-		err := errors.New("Поиск таски в базе:")
-		return v, err
-	} else {
-		v = Todo{
-			//Id:          v.Id,
-			Title:       title,
-			Description: description}
-		ts.tasks[id] = v
-	}
+	v := Todo{
+		//Id:          v.Id,
+		Title:       title,
+		Description: description}
 
+	UpdateValues(uuid, title, description)
 	return v, nil
 
 }
 
-// GetList отдаёт список всех задач
-func (ts *Storage) GetList() map[int]Todo {
+// GetList отдаёт список всех задач.
+func (ts *Storage) GetList() map[uuid.UUID]Todo {
 
 	conn, err := pgx.Connect(Conn)
 	if err != nil {
@@ -115,7 +126,7 @@ func (ts *Storage) GetList() map[int]Todo {
 	//rows, _ := ReadValues()
 
 	for rows.Next() {
-		var id int
+		var id uuid.UUID
 		var title string
 		var description string
 		err := rows.Scan(&id, &title, &description)
@@ -136,12 +147,12 @@ func (ts *Storage) GetList() map[int]Todo {
 	return ts.tasks
 }
 
-// DeleteTask удаляет задачу по id
-func (ts *Storage) DeleteTask(id int) {
+// DeleteTask удаляет задачу по id.
+func (ts *Storage) DeleteTask(uuid uuid.UUID) {
 	ts.Lock()
 	defer ts.Unlock()
 
-	delete(ts.tasks, id)
+	delete(ts.tasks, uuid)
 	fmt.Println(ts)
 	return
 
