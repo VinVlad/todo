@@ -27,7 +27,6 @@ func (s *Server) Run(port string) {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 	}
-	//return s.httpServer.ListenAndServe()
 }
 
 //func (s *Server) Shutdown(ctx context.Context) error {
@@ -142,10 +141,41 @@ func (s *Server) GetTasksListHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, td)
 }
 
-//TODO: Удаление тоже доработать
-//func (s *Server) DeleteTaskHandler(w http.ResponseWriter, req *http.Request) {
-//	log.Printf("handling delete task  at %s\n", req.URL.Path)
-//
-//	id, _ := strconv.Atoi(mux.Vars(req)["id"])
-//	s.Storage.DeleteTask(uuid.UUID)
-//}
+// TODO: Удаление тоже доработать
+func (s *Server) DeleteTaskHandler(w http.ResponseWriter, req *http.Request) {
+	log.Printf("handling delete task  at %s\n", req.URL.Path)
+
+	type RequestTask struct {
+		Id uuid.UUID `json:"id"`
+	}
+
+	type ResponseId struct {
+		Message string `json:"message"`
+	}
+
+	contentType := req.Header.Get("Content-Type")
+	mediatype, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if mediatype != "application/json" {
+		http.Error(w, "expect application/json Content-Type", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	dec := json.NewDecoder(req.Body)
+	dec.DisallowUnknownFields()
+	var rt RequestTask
+	if err := dec.Decode(&rt); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	message, err := s.Storage.DeleteTask(rt.Id)
+
+	renderJSON(w, ResponseId{Message: message})
+
+	//id, _ := strconv.Atoi(mux.Vars(req)["id"])
+	//s.Storage.DeleteTask(uuid.UUID)
+}

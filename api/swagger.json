@@ -11,7 +11,7 @@
   ],
   "paths": {
     "/task/": {
-      "post": {
+      "put": {
         "description": "Добавление новой карточки",
         "responses": {
           "405": {
@@ -32,10 +32,89 @@
                 "title":{
                   "type": "string"
                 },
-                "descriprion": {
+                "description": {
                   "type": "string"
                 }
 
+              }
+            }
+          }
+        ]
+      },
+      "post": {
+        "description": "Изменение карточки",
+        "responses": {
+          "405": {
+            "description": "Метод не найден"
+          },
+          "200": {
+            "description": "Карточка изменена"
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "new card",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id":{
+                  "type": "string"
+                },
+                "title":{
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+
+              }
+            }
+          }
+        ]
+      },
+      "get": {
+        "description": "Получение списка всех карточке",
+        "responses": {
+          "405": {
+            "description": "Метод не найден"
+          },
+          "200": {
+            "description": "Карточка создана"
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "new card",
+            "in": "body",
+            "schema": {
+            }
+          }
+        ]
+      },
+      "delete": {
+        "description": "Удаление карточки",
+        "responses": {
+          "405": {
+            "description": "Метод не найден"
+          },
+          "200": {
+            "description": "Карточка создана"
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "delete card",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id":{
+                  "type": "string"
+                }
               }
             }
           }

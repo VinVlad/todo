@@ -15,12 +15,15 @@ func main() {
 
 	server := internal.NewServer()
 
-	router.HandleFunc("/task/", server.CreateTaskHandler).Methods("POST")
-	router.HandleFunc("/task/change/", server.ChangeTaskHandler).Methods("POST")
-	router.HandleFunc("/task/all", server.GetTasksListHandler).Methods("GET")
-	//router.HandleFunc("/task/{id:[0-9]+}/", server.DeleteTaskHandler).Methods("DELETE")
+	router.HandleFunc("/task/", server.CreateTaskHandler).Methods("PUT")
+	router.HandleFunc("/task/", server.ChangeTaskHandler).Methods("POST")
+	router.HandleFunc("/task/", server.GetTasksListHandler).Methods("GET")
+	router.HandleFunc("/task/", server.DeleteTaskHandler).Methods("DELETE")
+
+	//fmt.Println(internal.Config.Config)
 
 	server.Run("8000")
+
 	log.Fatal(http.ListenAndServe(server.HttpServer.Addr, router))
 
 }
