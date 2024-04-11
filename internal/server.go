@@ -29,10 +29,7 @@ func (s *Server) Run(port string) {
 	}
 }
 
-//func (s *Server) Shutdown(ctx context.Context) error {
-//	return s.httpServer.Shutdown(ctx)
-//}
-
+// renderJSON формирует JSON.
 func renderJSON(w http.ResponseWriter, v interface{}) {
 	js, err := json.Marshal(v)
 	if err != nil {
@@ -43,11 +40,10 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	w.Write(js)
 }
 
+// CreateTaskHandler хэндлер для создания новой карточки.
 func (s *Server) CreateTaskHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling task create at %s\n", req.URL.Path)
 
-	// Types used internally in this handler to (de-)serialize the request and
-	// response from/to JSON.
 	type RequestTask struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -57,7 +53,6 @@ func (s *Server) CreateTaskHandler(w http.ResponseWriter, req *http.Request) {
 		Id uuid.UUID `json:"id"`
 	}
 
-	// Enforce a JSON Content-Type.
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -81,12 +76,10 @@ func (s *Server) CreateTaskHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, ResponseId{Id: id})
 }
 
-// TODO: доработать метод редактирования карточки
+// ChangeTaskHandler хэндлер для обновления существующей карточки.
 func (s *Server) ChangeTaskHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling task change at %s\n", req.URL.Path)
 
-	// Types used internally in this handler to (de-)serialize the request and
-	// response from/to JSON.
 	type RequestTask struct {
 		Id          uuid.UUID `json:"id"`
 		Title       string    `json:"title"`
@@ -99,7 +92,6 @@ func (s *Server) ChangeTaskHandler(w http.ResponseWriter, req *http.Request) {
 		Description string    `json:"description"`
 	}
 
-	// Enforce a JSON Content-Type.
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -123,10 +115,11 @@ func (s *Server) ChangeTaskHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Println("ошибка изменения карточки:")
 	}
-	//todo подумать над rt.Id
+
 	renderJSON(w, ResponseId{Id: rt.Id, Title: td.Title, Description: td.Description})
 }
 
+// GetTasksListHandler хэндлер для получения всех карточке.
 func (s *Server) GetTasksListHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling get all tasks  at %s\n", req.URL.Path)
 
@@ -141,7 +134,7 @@ func (s *Server) GetTasksListHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, td)
 }
 
-// TODO: Удаление тоже доработать
+// DeleteTaskHandler хэндлер для удаления карточки по uuid.
 func (s *Server) DeleteTaskHandler(w http.ResponseWriter, req *http.Request) {
 	log.Printf("handling delete task  at %s\n", req.URL.Path)
 

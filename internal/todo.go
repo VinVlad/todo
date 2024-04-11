@@ -41,6 +41,7 @@ func NewStorage() *Storage {
 	return ts
 }
 
+// isExist проверяет есть ли запись в базе с таким uuid.
 func isExist(ctx context.Context, id uuid.UUID) (bool, error) {
 
 	conn, err := pgx.ConnectConfig(ctx, config)
@@ -48,7 +49,7 @@ func isExist(ctx context.Context, id uuid.UUID) (bool, error) {
 		fmt.Println("Unable to connect to database:", err)
 		return false, err
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	exist := conn.QueryRow(ctx, "Select EXISTS (SELECT 1 FROM tasks  WHERE id = $1) ;", id)
 	var exists bool
@@ -59,14 +60,20 @@ func isExist(ctx context.Context, id uuid.UUID) (bool, error) {
 
 }
 
-func SaveValues(ctx context.Context, id uuid.UUID, title string, description string) {
+// SaveValues сохраняет запись в базу.
+func SaveValues(
+	ctx context.Context,
+	id uuid.UUID,
+	title string,
+	description string,
+) {
 
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		fmt.Println("Unable to connect to database:", err)
 		return
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	_, err = conn.Exec(ctx, "INSERT INTO tasks (id, title, description) VALUES ($1, $2, $3)", id, title, description)
 	if err != nil {
@@ -76,14 +83,20 @@ func SaveValues(ctx context.Context, id uuid.UUID, title string, description str
 
 }
 
-func UpdateValues(ctx context.Context, id uuid.UUID, title string, description string) {
+// UpdateValues изменяет имеющуюся запись в базе по uuid.
+func UpdateValues(
+	ctx context.Context,
+	id uuid.UUID,
+	title string,
+	description string,
+) {
 
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		fmt.Println("Unable to connect to database:", err)
 		return
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	_, err = conn.Exec(ctx, "UPDATE tasks SET title = $1, description = $2 WHERE id = $3;", title, description, id)
 	if err != nil {
@@ -100,11 +113,15 @@ func ReadValues() (*pgx.Rows, error) {
 }
 
 // CreateTodo создаёт новую туду-задачу в хранилище.
-func (ts *Storage) CreateTodo(title string, description string) uuid.UUID {
+func (ts *Storage) CreateTodo(
+	title string,
+	description string,
+) uuid.UUID {
 	ts.Lock()
 	defer ts.Unlock()
 
-	ctx, _ := context.WithCancel(Ctx)
+	ctx, cancel := context.WithCancel(Ctx)
+	defer cancel()
 
 	//ts.nextID++
 	//task := Todo{
@@ -118,14 +135,18 @@ func (ts *Storage) CreateTodo(title string, description string) uuid.UUID {
 	return id
 }
 
-// todo: поправить обращение по ключам. Если в базе записи нет, то всё-равно что-то вернётся)))))
 // TODO: расширить ошибки из функций save и update
 // ChangeTodo изменяет заголовок и/или описание задачи.
-func (ts *Storage) ChangeTodo(id uuid.UUID, title string, description string) (Todo, error) {
+func (ts *Storage) ChangeTodo(
+	id uuid.UUID,
+	title string,
+	description string,
+) (Todo, error) {
 	ts.Lock()
 	defer ts.Unlock()
 
-	ctx, _ := context.WithCancel(Ctx)
+	ctx, cancel := context.WithCancel(Ctx)
+	defer cancel()
 
 	v := Todo{
 		//Id:          v.Id,
@@ -147,14 +168,14 @@ func (ts *Storage) ChangeTodo(id uuid.UUID, title string, description string) (T
 
 // GetList отдаёт список всех задач.
 func (ts *Storage) GetList() map[uuid.UUID]Todo {
-
-	ctx, _ := context.WithCancel(Ctx)
+	ctx, cancel := context.WithCancel(Ctx)
+	defer cancel()
 
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		fmt.Println("Unable to connect to the database:", err)
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	rows, err := conn.Query(ctx, "SELECT id, title, description FROM tasks")
 	if err != nil {
@@ -189,7 +210,8 @@ func (ts *Storage) DeleteTask(id uuid.UUID) (string, error) {
 	ts.Lock()
 	defer ts.Unlock()
 
-	ctx, _ := context.WithCancel(Ctx)
+	ctx, cancel := context.WithCancel(Ctx)
+	defer cancel()
 
 	//delete(ts.tasks, uuid)
 	//fmt.Println(ts)
@@ -199,14 +221,14 @@ func (ts *Storage) DeleteTask(id uuid.UUID) (string, error) {
 		fmt.Println("Unable to connect to database:", err)
 		return "", err
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	_, err = conn.Exec(ctx, "DELETE FROM tasks WHERE id = $1;", id)
 	if err != nil {
 		fmt.Println("Удаление записи:", err)
 		return "", err
 	}
-	//TODO: Всегда пишет, что карточка удалена
+
 	return "Карточка удалена", nil
 
 }

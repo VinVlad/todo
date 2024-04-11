@@ -10,17 +10,13 @@ import (
 func main() {
 
 	router := mux.NewRouter()
-	//todo не работает игнор слэша
-	router.StrictSlash(true)
 
 	server := internal.NewServer()
 
-	router.HandleFunc("/task/", server.CreateTaskHandler).Methods("PUT")
-	router.HandleFunc("/task/", server.ChangeTaskHandler).Methods("POST")
-	router.HandleFunc("/task/", server.GetTasksListHandler).Methods("GET")
-	router.HandleFunc("/task/", server.DeleteTaskHandler).Methods("DELETE")
-
-	//fmt.Println(internal.Config.Config)
+	router.HandleFunc("/task", server.CreateTaskHandler).Methods(http.MethodPut)
+	router.HandleFunc("/task", server.ChangeTaskHandler).Methods(http.MethodPost)
+	router.HandleFunc("/task", server.GetTasksListHandler).Methods(http.MethodGet)
+	router.HandleFunc("/task", server.DeleteTaskHandler).Methods(http.MethodDelete)
 
 	server.Run("8000")
 
