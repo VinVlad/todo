@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Todo task
+  description: ''
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /task:
+    put:
+      summary: Добавление карточки
+      description: Добавление новой todo карточки
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: текст заголовка карточки
+                  example:  Дела на завтра
+                description:
+                  type: string
+                  description: текст содержимого карточки
+                  example:  Завтра нужно сделать много дел. Там помыть, тут убрать и немного отдыхат.
+      responses:
+        200:
+          description: Карточка создана
+          content:
+            application/json:
+              examples:
+                карточка создана:
+                  value:
+                    id: 'c7b62b02-e38e-49af-a19a-210a00ef1500'
+              schema:
+               type: object
+               properties:
+                 id:
+                   description: uuid созданной карточки
+                   type: string
+                   format: uuid
+    post:
+      summary: Изменение карточки
+      description: Изменение существующей карточки
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: uuid карточки
+                  example: c7b62b02-e38e-49af-a19a-210a00ef1500
+                title:
+                  type: string
+                  description: текст заголовка карточки
+                  example: Список покупок
+                description:
+                  type: string
+                  description: текст содержимого карточки
+                  example: Надо купить 7 вещей, одну из них продать.
+      responses:
+        200:
+          description: Карточка изменена
+          content:
+            application/json:
+              examples:
+                карточка изменена:
+                  value:
+                    id: 'c7b62b02-e38e-49af-a19a-210a00ef1500'
+                    title: 'Список покупок'
+                    description: 'Надо купить 7 вещей, одну из них продать.'
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  description:
+                    type: string
+    get:
+      summary: Получение карточек
+      description: Получение всех карточек, хранящихся в базе
+      responses:
+        200:
+          description: Карточки получены
+          content:
+            application/json:
+              examples:
+                карточки получены:
+                  value:
+                    id: 'c7b62b02-e38e-49af-a19a-210a00ef1500'
+                    title: 'Список покупок'
+                    description: 'Надо купить 7 вещей, одну из них продать.'
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: uuid карточки
+                    example: c7b62b02-e38e-49af-a19a-210a00ef1500
+                  title:
+                    type: string
+                    description: текст заголовка карточки
+                    example: Список покупок
+                  description:
+                    type: string
+                    description: текст содержимого карточки
+                    example: Надо купить 7 вещей, одну из них продать.
+    delete:
+      summary: Удаление карточки
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: uuid карточки
+                  example: c7b62b02-e38e-49af-a19a-210a00ef1500
+      responses: 
+        200:
+          description: Карточка удалена
+          content:
+            application/json:
+              examples:
+                карточка удалена:
+                  value:
+                    message: 'Карточка удалена'
+
